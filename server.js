@@ -47,7 +47,7 @@ app.get('/api/problems', async (req, res) => {
         res.status(500).json({ error: "데이터 조회 실패" });
     }
 });
-
+// 4. 문제 등록하기 (DB 저장)
 app.post('/api/problems', async (req, res) => {
     const { title, content, answer } = req.body;
     try {
@@ -58,6 +58,32 @@ app.post('/api/problems', async (req, res) => {
         res.status(201).json({ message: "등록 성공!" });
     } catch (err) {
         res.status(500).json({ error: "데이터 저장 실패" });
+    }
+});
+
+// 5. 문제 수정하기 (DB 업데이트)
+app.put('/api/problems/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, content, answer } = req.body;
+    try {
+        await pool.query(
+            'UPDATE problems SET title = $1, content = $2, answer = $3 WHERE id = $4',
+            [title, content, answer, id]
+        );
+        res.json({ message: "수정 성공!" });
+    } catch (err) {
+        res.status(500).json({ error: "데이터 수정 실패" });
+    }
+});
+
+// 6. 문제 삭제하기 (DB 삭제)
+app.delete('/api/problems/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM problems WHERE id = $1', [id]);
+        res.json({ message: "삭제 성공!" });
+    } catch (err) {
+        res.status(500).json({ error: "데이터 삭제 실패" });
     }
 });
 

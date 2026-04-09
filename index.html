@@ -105,7 +105,13 @@
             const card = document.createElement('div');
             card.className = 'problem-card';
             card.innerHTML = `
-                <div class="problem-title">${p.title}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="problem-title">${p.title}</div>
+                    <div style="display: flex; gap: 5px;">
+                        <button onclick="editProblem(${p.id}, '${p.title}', '${p.content}', '${p.answer}')" style="background: #f39c12; font-size: 12px; padding: 5px 10px; width: auto;">수정</button>
+                        <button onclick="deleteProblem(${p.id})" style="background: #e74c3c; font-size: 12px; padding: 5px 10px; width: auto;">삭제</button>
+                    </div>
+                </div>
                 <div class="problem-content">${p.content}</div>
                 <div class="answer-box">
                     <input type="text" class="answer-input" id="input-${p.id}" placeholder="정답은?">
@@ -116,7 +122,9 @@
         });
     }
 
+    // 2. 문제 등록하기
     async function addProblem() {
+        // (기존 코드와 동일)
         const title = document.getElementById('title').value;
         const content = document.getElementById('content').value;
         const answer = document.getElementById('answer').value;
@@ -136,7 +144,37 @@
         loadProblems();
     }
 
+    // 3. 문제 삭제하기
+    async function deleteProblem(id) {
+        if(!confirm("진짜로 이 문제를 삭제할까요?")) return;
+        
+        await fetch(`/api/problems/${id}`, { method: 'DELETE' });
+        loadProblems(); // 목록 새로고침
+    }
+
+    // 4. 문제 수정하기 (prompt 활용)
+    async function editProblem(id, oldTitle, oldContent, oldAnswer) {
+        const title = prompt("수정할 제목을 입력하세요", oldTitle);
+        if (title === null) return; // 취소 클릭 시
+
+        const content = prompt("수정할 내용을 입력하세요", oldContent);
+        if (content === null) return;
+
+        const answer = prompt("수정할 정답을 입력하세요", oldAnswer);
+        if (answer === null) return;
+
+        await fetch(`/api/problems/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content, answer })
+        });
+
+        loadProblems(); // 목록 새로고침
+    }
+
+    // 5. 정답 확인하기
     function checkAnswer(id, realAnswer) {
+        // (기존 코드와 동일)
         const userInput = document.getElementById(`input-${id}`).value;
         if (userInput === realAnswer) {
             alert("🎉 정답입니다! 대단해요!");
