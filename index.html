@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>심플 문제 공유소</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 { color: #333; text-align: center; }
+
+        .form-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        button:hover { background-color: #357abd; }
+
+        .problem-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+
+        .problem-title { font-weight: bold; font-size: 18px; margin-bottom: 10px; color: #444; }
+        .problem-content { color: #666; margin-bottom: 15px; }
+        
+        .answer-box { display: flex; gap: 10px; }
+        .answer-input { margin: 0; flex: 1; }
+        .check-btn { width: auto; white-space: nowrap; background-color: #2ecc71; }
+        .check-btn:hover { background-color: #27ae60; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📝 문제 공유 사이트</h1>
+
+    <div class="form-card">
+        <h3>새 문제 만들기</h3>
+        <input type="text" id="title" placeholder="문제 제목을 입력하세요">
+        <textarea id="content" placeholder="문제 내용을 입력하세요" rows="3"></textarea>
+        <input type="text" id="answer" placeholder="정답을 입력하세요">
+        <button onclick="addProblem()">문제 등록하기</button>
+    </div>
+
+    <div id="problem-list"></div>
+</div>
+
+<script>
+    window.onload = loadProblems;
+
+    async function loadProblems() {
+        const response = await fetch('/api/problems');
+        const problems = await response.json();
+        const listDiv = document.getElementById('problem-list');
+        listDiv.innerHTML = '';
+
+        problems.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'problem-card';
+            card.innerHTML = `
+                <div class="problem-title">${p.title}</div>
+                <div class="problem-content">${p.content}</div>
+                <div class="answer-box">
+                    <input type="text" class="answer-input" id="input-${p.id}" placeholder="정답은?">
+                    <button class="check-btn" onclick="checkAnswer(${p.id}, '${p.answer}')">정답 확인</button>
+                </div>
+            `;
+            listDiv.appendChild(card);
+        });
+    }
+
+    async function addProblem() {
+        const title = document.getElementById('title').value;
+        const content = document.getElementById('content').value;
+        const answer = document.getElementById('answer').value;
+
+        if(!title || !content || !answer) return alert("모든 항목을 입력해주세요!");
+
+        await fetch('/api/problems', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content, answer })
+        });
+
+        document.getElementById('title').value = '';
+        document.getElementById('content').value = '';
+        document.getElementById('answer').value = '';
+
+        loadProblems();
+    }
+
+    function checkAnswer(id, realAnswer) {
+        const userInput = document.getElementById(`input-${id}`).value;
+        if (userInput === realAnswer) {
+            alert("🎉 정답입니다! 대단해요!");
+        } else {
+            alert("❌ 틀렸습니다. 다시 생각해보세요!");
+        }
+    }
+</script>
+
+</body>
+</html>
